@@ -5,9 +5,9 @@
 // Философ не может есть два раза подряд, не прервавшись на размышления (можно не учитывать)
 // Описать в виде кода такую ситуацию. Каждый философ должен поесть три раза
 
-
 public class Main {
     public static  void  main(String[]args){
-           Process.runProcess();
+        EatResurs eatResurs = new EatResurs();
+        eatResurs.run();
     }
 }

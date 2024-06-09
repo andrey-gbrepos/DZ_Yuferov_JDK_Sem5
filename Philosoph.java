@@ -1,73 +1,52 @@
-import java.util.Date;
-public class Philosoph extends Thread{
-    String name;
-    Integer numPhilosoph;
-    volatile Boolean status;
-    Integer countEating;
 
-    public Philosoph(String name, Integer numPhilosoph) {
-        this.name = name;
+public class Philosoph extends Thread{
+    Integer numPhilosoph;
+    Integer countEating;
+    EatResurs eatResurs;
+    
+    public Philosoph(Integer numPhilosoph, EatResurs eatResurs) {
         this.numPhilosoph = numPhilosoph;
-        this.status = true;
+        this.eatResurs = eatResurs;
         this.countEating = 0;
     }
     @Override
     public void run(){
-       while(Process.sumEat < 15) {
-           if (countEating < 4) {
-               if (status) {
-                   setNeighboursNegativeStatus(Process.philosophs);
-                   countEating++;
-                   Process.sumEat++;
-                   setNeighboursPositiveStatus(Process.philosophs);
-               }
-           }
+       while (countEating < 3) {
+            int firstFork = getNumPhilosoph();
+            int secondFork = (getNumPhilosoph() + 1) - 5*(getNumPhilosoph()/4);
+            if (eatResurs.getEatResurs(firstFork, secondFork)) {
+                try {
+                    eatingProcess(firstFork, secondFork);
+                    thinkingProcess();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+
+            }
+           eatResurs.getCountDownLatch().countDown();
        }
     }
 
-    public Boolean getStatus() {
-        return status;
+    public Integer getNumPhilosoph() {
+        return numPhilosoph;
     }
 
-    public void setStatus(Boolean status) {
-        this.status = status;
+    public void eatingProcess(int firstFork, int secondFork) throws InterruptedException{
+        System.out.println("Философ " + getNumPhilosoph() + " кушает вилками "
+                            + firstFork + " и " + secondFork);
+        countEating++;
+        sleep(3000);
+        System.out.println("Философ " + getNumPhilosoph() + " кладет вилки "
+                + firstFork + " и " + secondFork + " - переходит к размышлению.");
+        eatResurs.returnEatResurs(firstFork, secondFork);
     }
 
-    public Integer getCountEating() {
-        return countEating;
+    public void thinkingProcess() throws InterruptedException{
+        System.out.println("Философ " + getNumPhilosoph() + " размышляет");
+            sleep(3000);
     }
-
-    public void setCountEating(Integer countEating) {
-        this.countEating = countEating;
-    }
-
-    public  void setNeighboursNegativeStatus(Philosoph[] philosophs){
-        Integer leftNeighbour = (numPhilosoph == 0 )? philosophs.length - 1 :
-                                                            numPhilosoph - 1;
-        Integer rightNeighbour = (numPhilosoph == philosophs.length -1)? 0 :
-                                                          numPhilosoph + 1;
-        philosophs[leftNeighbour].setStatus(false);
-        philosophs[rightNeighbour].setStatus(false);
-        Date dt = new Date();
-        System.out.println("Время: " + dt.getTime());
-        for (int i = 0; i < philosophs.length; i++) {
-            String status = philosophs[i].getStatus()? " кушает " : " размышляет ";
-            System.out.println("Философ " + philosophs[i] + status);
-        }
-    }
-
-    public  void setNeighboursPositiveStatus(Philosoph[] philosophs){
-        Integer leftNeighbour = (numPhilosoph == 0 )? philosophs.length - 1 :
-                numPhilosoph - 1;
-        Integer rightNeighbour = (numPhilosoph == philosophs.length -1)? 0 :
-                numPhilosoph + 1;
-        philosophs[leftNeighbour].setStatus(true);
-        philosophs[rightNeighbour].setStatus(true);
-        setStatus(false);
-    }
-
     @Override
     public String toString() {
-        return String.format("%s", name);
+        return String.format("%s", "Философ №" + numPhilosoph);
     }
 }
